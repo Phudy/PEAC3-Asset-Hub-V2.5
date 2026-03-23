@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PEAC3 Asset Hub - ศูนย์รวมข้อมูลทรัพย์สิน กฟก.3</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Configuration for Custom Animations & Colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Sarabun', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    animation: {
+                        blob: "blob 7s infinite",
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'load-bar': 'loadBar 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+                        'spin-slow': 'spin 3s linear infinite',
+                        'spin-reverse': 'spin-reverse 2s linear infinite',
+                        'spin-fast': 'spin 1.5s linear infinite',
+                        'shimmer-text': 'shimmerText 3s linear infinite',
+                        'glimmer': 'glimmer 2s ease-in-out infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            "0%": { transform: "translate(0px, 0px) scale(1)" },
+                            "33%": { transform: "translate(30px, -50px) scale(1.1)" },
+                            "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
+                            "100%": { transform: "translate(0px, 0px) scale(1)" },
+                        },
+                        fadeInUp: {
+                            "0%": { opacity: 0, transform: "translateY(20px)" },
+                            "100%": { opacity: 1, transform: "translateY(0)" },
+                        },
+                        loadBar: {
+                            "0%": { width: "0%" },
+                            "40%": { width: "50%" },
+                            "80%": { width: "80%" },
+                            "100%": { width: "100%" },
+                        },
+                        "spin-reverse": {
+                            "0%": { transform: "rotate(360deg)" },
+                            "100%": { transform: "rotate(0deg)" },
+                        },
+                        shimmerText: {
+                            "0%": { backgroundPosition: "200% center" },
+                            "100%": { backgroundPosition: "-200% center" },
+                        },
+                        glimmer: {
+                            "0%, 100%": { opacity: 1, transform: "scale(1)" },
+                            "50%": { opacity: 0.5, transform: "scale(0.6)" }
+                        },
+                        float: {
+                            "0%, 100%": { transform: "translateY(0)" },
+                            "50%": { transform: "translateY(-6px)" }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            background-color: #f8fafc; /* slate-50 */
+            color: #0f172a; /* slate-900 */
+            overflow-x: hidden;
+        }
+
+        /* Grand Preloader Styles */
+        .preloader-overlay {
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+        }
+        .preloader-overlay.hidden-fade {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(1.05); /* Cinematic zoom-out fade */
+            pointer-events: none;
+        }
+        .glow-orb {
+            box-shadow: 0 0 40px 10px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Gold Shine Animation */
+        .gold-shine {
+            background: linear-gradient(120deg, #fbbf24 20%, #fffbeb 40%, #fbbf24 60%, #f59e0b 80%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6));
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+        
+        .glass-header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(241, 245, 249, 1);
+        }
+
+        /* Modern Segmented Control for Search Type */
+        .search-type-container {
+            background: #f1f5f9;
+            padding: 0.35rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .search-type-container label {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #64748b;
+        }
+        .search-type-container input:checked + label {
+            background-color: #ffffff;
+            color: #2563eb;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            transform: scale(1.02);
+            font-weight: 600;
+        }
+
+        /* Input Styling */
+        .modern-input {
+            background: rgba(255,255,255,0.9);
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .modern-input:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.4); /* slate-900 with opacity */
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease-out;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            width: 95vw;
+            height: 90vh;
+            max-width: none;
+            max-height: none;
+            overflow: hidden;
+            position: relative;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Table Styling */
+        #resultsTable { border-collapse: separate; border-spacing: 0; }
+        #resultsTable th {
+            position: sticky; top: 0;
+            background: rgba(248, 250, 252, 0.95);
+            backdrop-filter: blur(4px);
+            z-index: 10;
+            border-bottom: 2px solid #e2e8f0;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        #resultsTable tbody tr { transition: all 0.2s ease; border-bottom: 1px solid #f1f5f9; }
+        #resultsTable tbody tr:hover { background-color: #f8fafc; transform: scale(1.001); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); z-index: 1; position: relative; }
+        #resultsTable td { color: #334155; border-bottom: 1px solid #f1f5f9; }
+
+        /* Status Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+            line-height: 1.2;
+            text-align: center;
+        }
+        .badge-danger { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .badge-warning { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-success { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .badge-neutral { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+        /* Tags */
+        .tag-container { cursor: text; }
+        .tag {
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            transition: all 0.2s;
+        }
+        .tag:hover { background: #dbeafe; }
+        .tag-remove:hover { color: #dc2626; }
+
+        /* Buttons */
+        .btn-modern {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-modern::after {
+            content: ''; position: absolute; top: 50%; left: 50%; width: 5px; height: 5px;
+            background: rgba(255,255,255,.5); opacity: 0; border-radius: 100%;
+            transform: scale(1, 1) translate(-50%); transform-origin: 50% 50%;
+        }
+        .btn-modern:active::after {
+            animation: ripple 1s ease-out;
+        }
+        @keyframes ripple {
+            0% { transform: scale(0, 0); opacity: 0.5; }
+            100% { transform: scale(100, 100); opacity: 0; }
+        }
+
+        .quick-filter-btn { transition: all 0.2s; }
+        .quick-filter-btn.active {
+            background-color: #3b82f6; color: white; border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Pagination */
+        .page-link { transition: all 0.2s; font-weight: 500; }
+        .page-link:hover:not(.disabled):not(.active) { background-color: #f1f5f9; color: #2563eb; }
+        .page-link.active { background-color: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 4px 10px rgba(59,130,246,0.3); }
+        
+        /* Toast */
+        #toast {
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        #toast.show { bottom: 2rem; opacity: 1; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- ========================================== -->
+    <!-- GRAND PRELOADER (CINEMATIC INTRO) - BRIGHT THEME -->
+    <!-- ========================================== -->
+    <div id="initialPreloader" class="preloader-overlay fixed inset-0 z-[99999] bg-white flex flex-col items-center justify-center overflow-hidden">
+        <!-- Abstract Background Orbs for Deep Depth (Bright Version) -->
+        <div class="absolute top-1/4 left-1/4 w-[45vw] h-[45vw] bg-brand-200/40 rounded-full blur-[100px] animate-blob mix-blend-multiply"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-[45vw] h-[45vw] bg-purple-200/40 rounded-full blur-[100px] animate-blob mix-blend-multiply" style="animation-delay: 1.5s;"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] bg-blue-100/30 rounded-full blur-[120px] animate-pulse-slow mix-blend-multiply"></div>
+
+        <!-- 3D Orbital Holographic Rings -->
+        <div class="relative w-48 h-48 flex items-center justify-center mb-12 z-10">
+            <!-- Outer Ring (Fast) -->
+            <div class="absolute inset-0 border-t-2 border-l-2 border-brand-400 rounded-full animate-spin-fast opacity-80 blur-[1px]"></div>
+            <!-- Middle Ring (Reverse) -->
+            <div class="absolute inset-3 border-r-4 border-b-4 border-purple-500 rounded-full animate-spin-reverse opacity-90 drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]"></div>
+            <!-- Inner Ring (Slow) -->
+            <div class="absolute inset-8 border-t-4 border-r-4 border-blue-500 rounded-full animate-spin-slow opacity-90"></div>
+            
+            <!-- Central Icon -->
+            <div class="absolute inset-0 flex items-center justify-center">
+                <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.3)]">
+                    <i class="fas fa-bolt text-5xl gold-shine animate-shimmer-text"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- High-Tech Typography -->
+        <div class="text-center z-10">
+            <!-- Dynamic Data Status -->
+            <div class="h-6 mb-6">
+                <p id="preloaderText" class="text-brand-600 text-sm sm:text-base font-mono tracking-[0.3em] font-bold animate-pulse">
+                    INITIALIZING SECURE CONNECTION...
+                </p>
+            </div>
+
+            <!-- Sleek Progress Bar -->
+            <div class="w-72 sm:w-96 h-2 bg-slate-100 rounded-full overflow-hidden mx-auto shadow-inner border border-slate-200">
+                <div id="preloaderBarContainer" class="h-full w-full">
+                    <div id="preloaderBar" class="h-full bg-gradient-to-r from-brand-500 via-purple-500 to-blue-500 rounded-full w-0 animate-load-bar relative shadow-[0_0_10px_rgba(147,51,234,0.5)]">
+                        <!-- Shine effect on bar -->
+                        <div class="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-r from-transparent to-white/60 blur-[2px]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ========================================== -->
+
+    <!-- Animated Background Blobs (Main App) -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-100/60 blur-[100px] animate-blob mix-blend-multiply"></div>
+        <div class="absolute top-[20%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-purple-100/60 blur-[100px] animate-blob mix-blend-multiply" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-[-10%] left-[20%] w-[60vw] h-[60vw] rounded-full bg-teal-50/60 blur-[100px] animate-blob mix-blend-multiply" style="animation-delay: 4s;"></div>
+    </div>
+
+    <!-- ขยายความกว้างสูงสุดของ Container จาก max-w-7xl เป็น w-full max-w-[98%] xl:max-w-[1600px] -->
+    <div class="w-full max-w-[98%] xl:max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-8 pt-10 pb-20">
+        
+        <!-- Hero Section -->
+        <div class="text-center mb-12 animate-fade-in-up">
+            <h1 class="text-4xl sm:text-6xl font-extrabold mb-3 tracking-tight text-slate-900 flex flex-wrap justify-center items-center gap-3 sm:gap-4">
+                <div class="relative inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-full shadow-[0_8px_20px_rgba(245,158,11,0.25)] border border-amber-200 overflow-visible">
+                    <!-- Dynamic Glow Behind -->
+                    <div class="absolute inset-0 bg-amber-400/20 rounded-full blur-lg animate-pulse-slow"></div>
+                    <!-- The Lightning Bolt with Sweep Shine -->
+                    <i class="fas fa-bolt text-3xl sm:text-4xl gold-shine animate-shimmer-text relative z-10"></i>
+                </div>
+                <span>PEAC3 <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-500">Asset Hub</span></span>
+            </h1>
+            <p class="text-lg sm:text-xl font-medium text-slate-500 mt-4">ศูนย์รวมข้อมูลทรัพย์สิน กฟก.3 อัจฉริยะ</p>
+            <div class="mt-5 inline-flex items-center bg-white/80 backdrop-blur-sm border border-brand-100 text-brand-700 text-xs font-bold px-4 py-2 rounded-full shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+                v2.5 Modern Edition
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="glass rounded-3xl shadow-xl border border-white/60 overflow-hidden animate-fade-in-up" style="animation-delay: 0.1s;">
+            
+            <!-- Search Section -->
+            <div class="p-8 sm:p-12 hidden" id="searchSection">
+                <div class="text-center mb-10">
+                    <h2 class="text-2xl font-bold text-slate-800">ค้นหาข้อมูลทรัพย์สิน</h2>
+                    <p class="text-slate-500 mt-2">ระบุเงื่อนไขที่ต้องการเพื่อดึงข้อมูลจากฐานข้อมูลล่าสุด</p>
+                </div>
+                
+                <form class="max-w-4xl mx-auto" id="searchForm">
+                    <div class="mb-10 text-center">
+                        <div class="search-type-container flex-wrap justify-center gap-1 sm:gap-2">
+                            <div>
+                                <input type="radio" id="assetNumber" name="searchType" value="assetNumber" class="hidden" checked>
+                                <label for="assetNumber" class="px-5 py-2.5 rounded-full cursor-pointer text-sm sm:text-base inline-block"><i class="fas fa-barcode mr-2"></i>รหัสทรัพย์สิน</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="employee" name="searchType" value="employee" class="hidden">
+                                <label for="employee" class="px-5 py-2.5 rounded-full cursor-pointer text-sm sm:text-base inline-block"><i class="fas fa-id-card mr-2"></i>รหัสพนักงาน</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="costCenterName" name="searchType" value="costCenterName" class="hidden">
+                                <label for="costCenterName" class="px-5 py-2.5 rounded-full cursor-pointer text-sm sm:text-base inline-block"><i class="fas fa-building mr-2"></i>ชื่อศูนย์ต้นทุน</label>
+                            </div>
+                             <div>
+                                <input type="radio" id="businessType" name="searchType" value="businessType" class="hidden">
+                                <label for="businessType" class="px-5 py-2.5 rounded-full cursor-pointer text-sm sm:text-base inline-block"><i class="fas fa-briefcase mr-2"></i>ประเภทธุรกิจ</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="relative max-w-3xl mx-auto">
+                        <label for="searchInput" id="searchLabel" class="block text-slate-700 font-semibold mb-3 ml-1">รหัสทรัพย์สิน:</label>
+                        <div class="modern-input rounded-2xl flex items-start gap-2 p-2 shadow-sm">
+                            <div class="mt-2.5 ml-3 text-brand-500">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div id="tagContainer" class="tag-container flex-grow border-none shadow-none p-1 mb-0 bg-transparent">
+                                <input type="text" 
+                                        id="searchInput" 
+                                        class="flex-grow p-2 border-0 bg-transparent focus:outline-none focus:ring-0 text-slate-700 placeholder-slate-400" 
+                                        placeholder="พิมพ์รหัส, วางจาก Excel, หรือพิมพ์ช่วง (เช่น 100-105) แล้ว Enter"
+                                        autocomplete="off">
+                            </div>
+                            <button type="button" id="clearAllTagsBtn" title="ลบเงื่อนไขทั้งหมด" class="hidden mt-2 p-2 mr-1 text-slate-400 hover:text-rose-500 transition-colors bg-slate-100 hover:bg-rose-50 rounded-full">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div id="suggestionsContainer" class="hidden absolute w-full z-[100] mt-2 bg-white rounded-xl border border-slate-200 shadow-xl max-h-64 overflow-y-auto"></div>
+                    </div>
+                    
+                    <div class="mt-10 text-center">
+                        <button type="submit" class="btn-modern bg-brand-600 text-white font-bold py-3.5 px-10 rounded-full text-lg shadow-[0_8px_20px_rgba(37,99,235,0.25)] hover:shadow-[0_12px_25px_rgba(37,99,235,0.35)] hover:-translate-y-1">
+                            ดำเนินการค้นหา
+                        </button>
+                    </div>
+
+                    <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
+                        <a href="#" class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-slate-100 text-sm text-slate-600 hover:bg-slate-200 hover:text-slate-900 font-medium transition-colors">
+                             <i class="fas fa-book-open mr-2 text-brand-500"></i> คู่มือการใช้งาน
+                        </a>
+                        <a href="#" class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-slate-100 text-sm text-slate-600 hover:bg-slate-200 hover:text-slate-900 font-medium transition-colors">
+                             <i class="fas fa-file-contract mr-2 text-brand-500"></i> หลักเกณฑ์ฯ ทรัพย์สิน
+                        </a>
+                    </div>
+                </form>
+
+                <div class="mt-12 pt-8 border-t border-slate-200/60">
+                    <button id="showGlobalDashboardBtn" class="w-full max-w-md mx-auto group bg-white border border-slate-200 text-slate-700 font-bold py-3 px-8 rounded-full text-base shadow-sm hover:border-brand-300 hover:text-brand-600 hover:shadow-md transition-all flex items-center justify-center">
+                        <div class="bg-brand-50 text-brand-600 p-2 rounded-full mr-3 group-hover:bg-brand-100 transition-colors">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        เปิด Dashboard ภาพรวมองค์กร
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div class="p-6 m-8 bg-rose-50 border border-rose-200 rounded-2xl hidden" id="errorMessage">
+                <div class="flex items-center text-rose-700">
+                    <i class="fas fa-exclamation-circle text-2xl mr-4"></i>
+                    <div>
+                        <h4 class="font-bold text-lg" id="errorTitle">เกิดข้อผิดพลาด</h4>
+                        <p id="errorText" class="text-sm mt-1"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Results -->
+            <div class="p-16 text-center hidden" id="noResults">
+                <div class="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-search-minus text-4xl text-amber-500"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-800 mb-2">ไม่พบข้อมูลที่ค้นหา</h3>
+                <p class="text-slate-500 mb-8">ไม่มีรายการทรัพย์สินที่ตรงกับเงื่อนไขที่คุณระบุ โปรดตรวจสอบความถูกต้องและลองใหม่อีกครั้ง</p>
+                <button class="btn-modern bg-white border border-slate-300 text-slate-700 font-semibold py-2 px-6 rounded-full hover:bg-slate-50" onclick="showSearchSection()">
+                    <i class="fas fa-arrow-left mr-2"></i> กลับไปค้นหาใหม่
+                </button>
+            </div>
+
+            <!-- Results Section -->
+            <div class="p-4 sm:p-8 hidden bg-white" id="resultsSection">
+                <div class="relative flex flex-col sm:flex-row items-center justify-center mb-10 gap-6">
+                    <!-- ปุ่มกลับแบบยึดซ้าย (Absolute on Desktop) -->
+                    <div class="w-full sm:w-auto sm:absolute sm:left-0 flex justify-start">
+                        <button class="group flex items-center text-slate-500 hover:text-brand-700 font-bold transition-all bg-white hover:bg-brand-50 px-5 py-2.5 rounded-full shadow-sm border border-slate-200 hover:border-brand-200" onclick="showSearchSection()">
+                            <i class="fas fa-arrow-left mr-2 transform group-hover:-translate-x-1 transition-transform"></i> ค้นหาใหม่
+                        </button>
+                    </div>
+                    
+                    <!-- ข้อความและวันที่ตรงกลาง -->
+                    <div class="text-center z-10 flex flex-col items-center">
+                        <h2 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight drop-shadow-sm mb-3">รายงานข้อมูลทรัพย์สิน</h2>
+                        <div class="inline-flex items-center bg-brand-50 border border-brand-200 text-brand-700 px-5 py-1.5 rounded-full shadow-sm">
+                            <p id="statusDateDisplay" class="text-sm font-bold tracking-wide"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50 rounded-2xl p-5 mb-8 border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="text-slate-700" id="resultsInfo"></div>
+                    
+                    <div class="flex flex-wrap gap-2 justify-center">
+                        <button class="btn-modern bg-white border border-slate-200 text-slate-700 hover:text-brand-600 hover:border-brand-300 font-medium py-2 px-4 rounded-xl shadow-sm flex items-center" onclick="showDashboard(false)">
+                            <i class="fas fa-chart-bar mr-2 text-brand-500"></i> วิเคราะห์
+                        </button>
+                        <button class="btn-modern bg-white border border-slate-200 text-slate-700 hover:text-slate-900 font-medium py-2 px-4 rounded-xl shadow-sm flex items-center" onclick="previewReport()">
+                            <i class="fas fa-print mr-2 text-slate-400"></i> พิมพ์
+                        </button>
+                        <button class="btn-modern bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-medium py-2 px-4 rounded-xl shadow-sm flex items-center" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel mr-2 text-emerald-600"></i> Excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Disposal Alert -->
+                <div id="disposalAlertContainer" class="hidden mb-8 p-5 bg-gradient-to-r from-rose-50 to-orange-50 border border-rose-100 rounded-2xl shadow-sm flex items-start gap-4">
+                    <!-- Content will be injected by JavaScript -->
+                </div>
+
+                <!-- Filters Bar -->
+                <div class="flex flex-col xl:flex-row justify-between items-center gap-4 mb-6 p-2 bg-slate-50/50 rounded-2xl border border-slate-100">
+                    
+                    <div id="quickFilterContainer" class="flex flex-wrap items-center justify-center gap-2 p-2">
+                        <span class="font-semibold text-slate-500 text-sm uppercase tracking-wider mr-2 hidden sm:inline-block"><i class="fas fa-filter mr-1"></i> กรองแบบด่วน</span>
+                        <button id="filterBtnAll" class="quick-filter-btn px-4 py-1.5 border border-slate-200 text-slate-600 bg-white rounded-full text-sm font-medium hover:bg-slate-50 active">
+                            ทั้งหมด
+                        </button>
+                        <button id="filterBtnBookValue" class="quick-filter-btn px-4 py-1.5 border border-slate-200 text-slate-600 bg-white rounded-full text-sm font-medium hover:bg-slate-50">
+                            มูลค่า 1 บาท
+                        </button>
+                        <button id="filterBtnDamaged" class="quick-filter-btn px-4 py-1.5 border border-slate-200 text-amber-600 bg-white rounded-full text-sm font-medium hover:bg-amber-50">
+                            ชำรุด/ไม่ใช้งาน
+                        </button>
+                        <button id="filterBtnDisposed" class="quick-filter-btn px-4 py-1.5 border border-slate-200 text-rose-600 bg-white rounded-full text-sm font-medium hover:bg-rose-50">
+                            จำหน่ายแล้ว
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 w-full xl:w-auto p-2">
+                        <div id="assetClassFilterContainer" class="relative min-w-[200px]">
+                             <button id="assetClassFilterButton" type="button" class="w-full text-left pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm font-medium text-slate-700 shadow-sm flex items-center justify-between">
+                                <span class="truncate">ทุกคลาสทรัพย์สิน</span>
+                                <i class="fas fa-chevron-down text-slate-400 text-xs ml-2"></i>
+                             </button>
+                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-layer-group text-brand-500"></i>
+                             </div>
+                             <div id="assetClassFilterOptions" class="hidden absolute z-20 mt-2 w-full bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 max-h-60 overflow-auto py-1">
+                                <!-- Options populated here -->
+                             </div>
+                        </div>
+                        <div class="relative flex-grow xl:w-64">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-slate-400"></i>
+                            </div>
+                            <input type="text" id="multifunctionSearchInput" class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm shadow-sm transition-shadow" placeholder="ค้นหาในตารางนี้...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs sm:text-[13px] text-left border-collapse" id="resultsTable" style="word-break: break-word;">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="p-2 w-10 text-center bg-brand-50/50 align-middle">
+                                        <div class="flex items-center justify-center">
+                                            <input type="checkbox" id="selectAllCheckbox" class="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500 cursor-pointer">
+                                        </div>
+                                    </th>
+                                    <th scope="col" class="px-2 py-3 sortable group cursor-pointer bg-brand-50/50 align-middle w-[9%]" data-sort="assetMain">รหัสหลัก <i class="fas fa-sort text-slate-300 group-hover:text-brand-500 ml-1 transition-colors sort-icon"></i></th>
+                                    <th scope="col" class="px-2 py-3 sortable group cursor-pointer bg-brand-50/50 align-middle w-[6%]" data-sort="assetSub">รหัสย่อย <i class="fas fa-sort text-slate-300 group-hover:text-brand-500 ml-1 transition-colors sort-icon"></i></th>
+                                    <th scope="col" class="px-2 py-3 sortable group cursor-pointer bg-brand-50/50 align-middle w-[22%]" data-sort="assetDescription">คำอธิบาย <i class="fas fa-sort text-slate-300 group-hover:text-brand-500 ml-1 transition-colors sort-icon"></i></th>
+                                    <th scope="col" class="px-2 py-3 sortable group cursor-pointer bg-brand-50/50 align-middle w-[7%]" data-sort="transferDate">วันที่โอน <i class="fas fa-sort text-slate-300 group-hover:text-brand-500 ml-1 transition-colors sort-icon"></i></th>
+                                    <th scope="col" class="px-2 py-3 sortable group cursor-pointer text-right bg-brand-50/50 align-middle w-[9%]" data-sort="acquisitionValue">มูลค่าได้มา <i class="fas fa-sort text-slate-300 group-hover:text-brand-500 ml-1 transition-colors sort-icon"></i></th>
+                                    <th scope="col" class="px-2 py-3 sortable group cursor-pointer text-right bg-brand-50/50 align-middle w-[9%]" data-sort="accumulatedDepreciation">ค่าเสื่อมสะสม <i class="fas fa-sort text-slate-300 group-hover:text-brand-500 ml-1 transition-colors sort-icon"></i></th>
+                                    <th scope="col" class="px-2 py-3 sortable group cursor-pointer text-right bg-brand-50/50 align-middle w-[9%]" data-sort="bookValue">มูลค่าบัญชี <i class="fas fa-sort text-slate-300 group-hover:text-brand-500 ml-1 transition-colors sort-icon"></i></th>
+                                    <th scope="col" class="px-2 py-3 sortable group cursor-pointer bg-brand-50/50 align-middle w-[10%]" data-sort="assetSupervisorName">ผู้ดูแล <i class="fas fa-sort text-slate-300 group-hover:text-brand-500 ml-1 transition-colors sort-icon"></i></th>
+                                    <th scope="col" class="px-2 py-3 sortable group cursor-pointer bg-brand-50/50 align-middle w-[10%]" data-sort="assetCostCenter">ศูนย์ต้นทุน <i class="fas fa-sort text-slate-300 group-hover:text-brand-500 ml-1 transition-colors sort-icon"></i></th>
+                                    <th scope="col" class="px-2 py-3 sortable group cursor-pointer text-center bg-brand-50/50 align-middle w-[9%]" data-sort="status">สถานะ <i class="fas fa-sort text-slate-300 group-hover:text-brand-500 ml-1 transition-colors sort-icon"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody" class="divide-y divide-slate-100 font-medium">
+                                <!-- Data rows -->
+                            </tbody>
+                            <tfoot id="resultsFooter" class="bg-slate-50 border-t-2 border-slate-200 font-semibold text-slate-700">
+                                <!-- Summary row -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                 
+                <!-- Pagination -->
+                <div id="paginationContainer" class="mt-8 flex justify-center items-center space-x-1.5"></div>
+            </div>
+        </div>
+
+        <footer class="text-center text-slate-400 mt-12 pb-4 text-sm font-medium">
+            <p>ออกแบบและพัฒนาระบบโดย <span class="text-slate-500">ผบส.กบฟ.(ก3)</span></p>
+        </footer>
+    </div>
+    
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal-overlay">
+        <div class="modal-content flex flex-col">
+            <div class="glass-header px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                    <i class="fas fa-file-alt text-brand-500 mr-3"></i> ตัวอย่างเอกสารก่อนพิมพ์
+                </h2>
+                <button id="closePreviewModal" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 transition-colors flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="flex-grow bg-slate-100/50 p-6 relative">
+                <div class="absolute inset-6 bg-white shadow-xl rounded-lg overflow-hidden border border-slate-200">
+                    <iframe id="previewFrame" class="w-full h-full"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Modal -->
+    <div id="dashboardModal" class="modal-overlay">
+        <div class="modal-content flex flex-col" style="width: 95vw; height: 95vh; max-width: 1400px;">
+            <div class="glass-header px-6 py-4 flex justify-between items-center z-10">
+                <h2 id="dashboardTitle" class="text-xl font-bold text-slate-800 flex items-center">
+                    <i class="fas fa-chart-pie text-brand-500 mr-3"></i> <span>Dashboard วิเคราะห์ข้อมูล</span>
+                </h2>
+                <button id="closeDashboardModal" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 transition-colors flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="flex-grow overflow-y-auto bg-slate-50 p-4 sm:p-8">
+                
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-md transition-shadow">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 mb-1">จำนวนรายการรวม</p>
+                            <p id="db-total-count" class="text-3xl font-bold text-slate-800"></p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            <i class="fas fa-list-ol"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-md transition-shadow">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 mb-1">มูลค่าการได้มา</p>
+                            <p id="db-total-acquisition" class="text-2xl font-bold text-indigo-600"></p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-md transition-shadow">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 mb-1">ค่าเสื่อมสะสม</p>
+                            <p id="db-total-depreciation" class="text-2xl font-bold text-amber-600"></p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            <i class="fas fa-arrow-trend-down"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-md transition-shadow">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 mb-1">มูลค่าตามบัญชี (สุทธิ)</p>
+                            <p id="db-total-bookvalue" class="text-2xl font-bold text-emerald-600"></p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Filters -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
+                    <div class="flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center">
+                        <div class="flex flex-wrap gap-4 w-full lg:w-auto">
+                            <!-- Dropdowns -->
+                            <div class="flex-grow sm:flex-grow-0">
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">ประเภททรัพย์สิน</label>
+                                <select id="dbAssetClassFilter" class="w-full sm:w-48 pl-3 pr-8 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-slate-50 text-sm font-medium text-slate-700">
+                                    <option value="all">ทุกคลาส</option>
+                                </select>
+                            </div>
+                            <div class="flex-grow sm:flex-grow-0">
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">ประเภทธุรกิจ</label>
+                                <select id="dbBusinessTypeFilter" class="w-full sm:w-40 pl-3 pr-8 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-slate-50 text-sm font-medium text-slate-700">
+                                    <option value="all">ทุกธุรกิจ</option>
+                                </select>
+                            </div>
+                            <div class="flex-grow sm:flex-grow-0">
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">สถานะ</label>
+                                <select id="dbStatusFilter" class="w-full sm:w-48 pl-3 pr-8 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-slate-50 text-sm font-medium text-slate-700">
+                                    <option value="all">ทุกสถานะ</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Quick Filters -->
+                        <div id="dbQuickFilterContainer" class="flex flex-wrap items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                            <button id="dbFilterBtnAll" class="db-quick-filter-btn px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors active">ทั้งหมด</button>
+                            <button id="dbFilterBtnBookValue" class="db-quick-filter-btn px-4 py-1.5 text-slate-600 hover:bg-white rounded-lg text-xs font-semibold transition-colors">มูลค่า 1฿</button>
+                            <button id="dbFilterBtnDamaged" class="db-quick-filter-btn px-4 py-1.5 text-slate-600 hover:bg-white rounded-lg text-xs font-semibold transition-colors">ชำรุด</button>
+                            <button id="dbFilterBtnDisposed" class="db-quick-filter-btn px-4 py-1.5 text-slate-600 hover:bg-white rounded-lg text-xs font-semibold transition-colors">จำหน่ายแล้ว</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-1">
+                        <h3 class="text-base font-bold text-slate-800 mb-6 flex items-center"><span class="w-2 h-6 bg-brand-500 rounded-full mr-3"></span>สัดส่วนสถานะทรัพย์สิน</h3>
+                        <div class="chart-container" style="height: 280px;">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
+                        <h3 class="text-base font-bold text-slate-800 mb-6 flex items-center"><span class="w-2 h-6 bg-emerald-500 rounded-full mr-3"></span>มูลค่าตามบัญชี Top 15 คลาส</h3>
+                        <div class="chart-container" style="height: 280px;">
+                            <canvas id="classChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-3">
+                        <h3 class="text-base font-bold text-slate-800 mb-6 flex items-center"><span class="w-2 h-6 bg-blue-500 rounded-full mr-3"></span>จำนวนทรัพย์สินแยกตามศูนย์ต้นทุน (Top 20)</h3>
+                        <div class="chart-container" style="height: 350px;">
+                            <canvas id="costCenterChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed z-[9999] bg-slate-800 text-white py-3 px-6 rounded-2xl shadow-2xl flex items-center gap-3 font-medium opacity-0 pointer-events-none">
+        <i class="fas fa-info-circle text-brand-400"></i>
+        <span id="toastMsg"></span>
+    </div>
+
+    <!-- Excel Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        // ========================================
+        // Google Sheets API Configuration
+        // ========================================
+        
+        const API_KEY = 'AIzaSyA5c8JZsxEC7JgLspIjuCU-CCsIAa7TtWg';
+        const SHEET_ID = '15nHQmmivX-8UaVFZ_DEsupVP1X0MEIfVWQ0oatmFjDM';
+        const SHEET_NAME = 'Data';
+        const DATA_RANGE = `${SHEET_NAME}!A2:Z100000`;
+        const DATE_RANGE = `${SHEET_NAME}!Q2`;
+        
+        // ========================================
+        // Column Mapping
+        // ========================================
+        const COLUMNS = {
+            BUSINESS_TYPE: 0,       // Column A
+            DEPARTMENT_CODE: 1,     // Column B
+            ASSET_COST_CENTER: 2,   // Column C
+            ASSET_MAIN: 3,          // Column D
+            ASSET_SUB: 4,           // Column E
+            ASSET_DESCRIPTION: 5,   // Column F
+            TRANSFER_DATE: 8,       // Column I
+            ACQUISITION_VALUE: 9,   // Column J
+            DEPRECIATION: 10,       // Column K
+            BOOK_VALUE: 11,         // Column L
+            EMPLOYEE_CODE: 12,      // Column M
+            EMPLOYEE_NAME: 13,      // Column N
+            POSITION: 14,           // Column O
+            DEPARTMENT: 15,         // Column P
+            STATUS: 19,             // Column T
+            ASSET_CLASS_CODE: 20,   // Column U
+            ASSET_CLASS_NAME: 21    // Column V
+        };
+
+        // Global variables
+        let currentData = [];
+        let currentDisplayData = [];
+        let selectedIds = new Set();
+        let currentSearchInfo = {};
+        let allData = [];
+        let statusDate = '';
+        let uniqueCostCenterNames = [];
+        let searchTags = [];
+        let currentSort = { column: null, direction: 'asc' };
+        let currentPage = 1;
+        const rowsPerPage = 20;
+        
+        // Global variables for main table filters
+        let activeQuickFilterFn = () => true;
+        let activeClassFilterValue = 'all';
+
+        let statusChartInstance, classChartInstance, costCenterChartInstance;
+        let dashboardBaseData = [];
+        let activeDbQuickFilterFn = () => true;
+        let activeDbClassFilterValue = 'all';
+        let activeDbBizFilterValue = 'all';
+        let activeDbStatusFilterValue = 'all';
+
+        // Chart.js Global Config for Light Theme
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.font.family = "'Sarabun', sans-serif";
+
+        // ========================================
+        // Helper UI Functions
+        // ========================================
+
+        function getStatusBadge(statusText) {
+            const status = (statusText || '').trim();
+            if (!status || status === '-') return '<span class="text-slate-400">-</span>';
+            
+            let badgeClass = 'badge-neutral';
+            let icon = '';
+            
+            if (status.includes('ใช้งาน') || status.includes('ปกติ')) {
+                badgeClass = 'badge-success';
+                icon = '<i class="fas fa-check-circle mr-1.5"></i>';
+            } else if (status.includes('ชำรุด') || status.includes('รอจำหน่าย')) {
+                badgeClass = 'badge-warning';
+                icon = '<i class="fas fa-exclamation-triangle mr-1.5"></i>';
+            } else if (status.includes('จำหน่าย') || status.includes('ขาย') || status.includes('ทำลาย')) {
+                badgeClass = 'badge-danger';
+                icon = '<i class="fas fa-times-circle mr-1.5"></i>';
+            }
+
+            return `<span class="badge ${badgeClass}">${icon}${status}</span>`;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        function hideAllSections() {
+            const ids = ['searchSection', 'resultsSection', 'errorMessage', 'noResults', 'loading'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+        }
+
+        // ========================================
+        // Grand Preloader Engine
+        // ========================================
+        const Preloader = {
+            interval: null,
+            show: function(texts) {
+                const el = document.getElementById('initialPreloader');
+                const textEl = document.getElementById('preloaderText');
+                const bar = document.getElementById('preloaderBar');
+                
+                // Unhide the preloader overlay
+                el.classList.remove('hidden-fade');
+                
+                // Reset text styles
+                textEl.classList.remove('text-emerald-500', 'text-rose-500');
+                textEl.classList.add('text-brand-600');
+                
+                // Reset the loading bar animation using reflow
+                if (bar) {
+                    bar.classList.remove('animate-load-bar');
+                    void bar.offsetWidth; // Trigger reflow to restart animation
+                    bar.classList.add('animate-load-bar');
+                }
+
+                // Handle text rotation
+                let textIndex = 0;
+                if(this.interval) clearInterval(this.interval);
+                
+                if (texts && texts.length > 0) {
+                    textEl.textContent = texts[0];
+                    this.interval = setInterval(() => {
+                        textIndex = (textIndex + 1) % texts.length;
+                        textEl.textContent = texts[textIndex];
+                    }, 500);
+                }
+            },
+            hide: function(finalText, isSuccess) {
+                return new Promise(resolve => {
+                    const el = document.getElementById('initialPreloader');
+                    const textEl = document.getElementById('preloaderText');
+                    
+                    if(this.interval) clearInterval(this.interval);
+                    
+                    // Show final status
+                    textEl.textContent = finalText;
+                    textEl.classList.remove('text-brand-600');
+                    textEl.classList.add(isSuccess ? 'text-emerald-500' : 'text-rose-500');
+                    
+                    // Wait a bit so the user can read it, then fade out
+                    setTimeout(() => {
+                        el.classList.add('hidden-fade');
+                        setTimeout(resolve, 800); // Wait for the 0.8s CSS transition
+                    }, 600); 
+                });
+            }
+        };
+
+        // ========================================
+        // Google Sheets API Functions
+        // ========================================
+        
+        async function loadGoogleSheetsData() {
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchGet?ranges=${encodeURIComponent(DATA_RANGE)}&ranges=${encodeURIComponent(DATE_RANGE)}&key=${API_KEY}`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Google Sheets API Error:', errorData);
+                    throw new Error(`เชื่อมต่อฐานข้อมูลล้มเหลว (HTTP ${response.status})`);
+                }
+                const data = await response.json();
+                
+                const mainData = data.valueRanges[0].values;
+                const dateData = data.valueRanges[1].values;
+
+                if (!mainData || mainData.length === 0) {
+                    throw new Error('ไม่พบข้อมูลในตาราง โปรดตรวจสอบ Google Sheet');
+                }
+                
+                if (dateData && dateData[0] && dateData[0][0]) {
+                    statusDate = dateData[0][0];
+                }
+
+                allData = mainData.map((row, index) => {
+                    const supervisorName = row[COLUMNS.EMPLOYEE_NAME] === '#N/A' ? '' : row[COLUMNS.EMPLOYEE_NAME];
+                    return {
+                        id: index, 
+                        businessType: row[COLUMNS.BUSINESS_TYPE] || '',
+                        departmentCode: row[COLUMNS.DEPARTMENT_CODE] || '',
+                        assetCostCenter: row[COLUMNS.ASSET_COST_CENTER] || '',
+                        assetMain: row[COLUMNS.ASSET_MAIN] || '',
+                        assetSub: row[COLUMNS.ASSET_SUB] || '',
+                        assetDescription: row[COLUMNS.ASSET_DESCRIPTION] || '',
+                        transferDate: row[COLUMNS.TRANSFER_DATE] || '',
+                        acquisitionValue: row[COLUMNS.ACQUISITION_VALUE] || '',
+                        accumulatedDepreciation: row[COLUMNS.DEPRECIATION] || '',
+                        bookValue: row[COLUMNS.BOOK_VALUE] || '',
+                        employeeCode: row[COLUMNS.EMPLOYEE_CODE] || '',
+                        assetSupervisorName: supervisorName || '',
+                        position: row[COLUMNS.POSITION] || '',
+                        department: row[COLUMNS.DEPARTMENT] || '',
+                        status: row[COLUMNS.STATUS] || '',
+                        assetClassCode: row[COLUMNS.ASSET_CLASS_CODE] || '',
+                        assetClassName: row[COLUMNS.ASSET_CLASS_NAME] || ''
+                    };
+                }).filter(row => 
+                    row.assetMain || row.employeeCode || row.departmentCode
+                );
+                
+                const costCenterNames = allData.map(item => item.assetCostCenter).filter(name => name);
+                uniqueCostCenterNames = [...new Set(costCenterNames)];
+
+                console.log(`Loaded ${allData.length} records`);
+                return true;
+                
+            } catch (error) {
+                console.error('Error loading Google Sheets data:', error);
+                throw error;
+            }
+        }
+
+        // ========================================
+        // Search Functions
+        // ========================================
+        
+        function searchByMultipleCriteria(tags, type) {
+            if (tags.length === 0) return [];
+            if (type === 'businessType' && tags.some(tag => tag.toLowerCase() === 'all')) {
+                return [...allData];
+            }
+            
+            return allData.filter(item => {
+                return tags.some(tag => {
+                    const lowerCaseTag = tag.toLowerCase();
+                    if (type === 'assetNumber' && lowerCaseTag.includes('-')) {
+                        const [startStr, endStr] = lowerCaseTag.split('-');
+                        const start = parseInt(startStr.trim(), 10);
+                        const end = parseInt(endStr.trim(), 10);
+                        const assetValue = parseInt(item.assetMain.trim(), 10);
+                        return !isNaN(start) && !isNaN(end) && !isNaN(assetValue) && assetValue >= start && assetValue <= end;
+                    } else {
+                        let valueToMatch = '';
+                        let isContainsSearch = false;
+                        
+                        if (type === 'employee') valueToMatch = item.employeeCode.toString().trim().toLowerCase();
+                        else if (type === 'costCenterName') {
+                            valueToMatch = item.assetCostCenter.toString().trim().toLowerCase();
+                            isContainsSearch = true; 
+                        }
+                        else if (type === 'businessType') valueToMatch = item.businessType.toString().trim().toLowerCase();
+                        else if (type === 'assetNumber') valueToMatch = item.assetMain.toString().trim().toLowerCase();
+                        
+                        return isContainsSearch ? valueToMatch.includes(lowerCaseTag) : valueToMatch === lowerCaseTag;
+                    }
+                });
+            });
+        }
+
+        // ========================================
+        // UI Event Handlers
+        // ========================================
+
+        document.querySelectorAll('input[name="searchType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const searchLabel = document.getElementById('searchLabel');
+                const searchInput = document.getElementById('searchInput');
+                searchTags = [];
+                renderTags();
+                
+                if (this.value === 'employee') {
+                    searchLabel.textContent = 'รหัสพนักงาน:';
+                    searchInput.placeholder = 'พิมพ์รหัส 6 หรือ 7 หลัก';
+                } else if (this.value === 'costCenterName') {
+                    searchLabel.textContent = 'ชื่อศูนย์ต้นทุน:';
+                    searchInput.placeholder = 'พิมพ์ "กบฟ." เพื่อดึงทั้งหมด, หรือพิมพ์เพื่อค้นหา';
+                } else if (this.value === 'businessType') {
+                    searchLabel.textContent = 'ประเภทธุรกิจ:';
+                    searchInput.placeholder = 'พิมพ์รหัส 4 หลัก หรือ "All" เพื่อดึงทั้งหมด';
+                } else { // assetNumber
+                    searchLabel.textContent = 'รหัสทรัพย์สิน:';
+                    searchInput.placeholder = 'พิมพ์รหัส, วางจาก Excel, หรือพิมพ์ช่วง (เช่น 100-105)';
+                }
+                searchInput.focus();
+            });
+        });
+
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (searchTags.length === 0) {
+                showError('กรุณาระบุเงื่อนไขการค้นหาก่อนดำเนินการ', 'ข้อมูลไม่ครบถ้วน');
+                return;
+            }
+            const searchType = document.querySelector('input[name="searchType"]:checked').value;
+            await performSearch(searchType, searchTags);
+        });
+
+        // ========================================
+        // Initialize App
+        // ========================================
+        
+        window.addEventListener('DOMContentLoaded', async function() {
+            // First time load
+            Preloader.show([
+                "CONNECTING TO DATABASE...", 
+                "FETCHING ASSET RECORDS...", 
+                "VERIFYING DATA INTEGRITY...", 
+                "PREPARING DASHBOARD..."
+            ]);
+
+            try {
+                await loadGoogleSheetsData();
+                await Preloader.hide("SYSTEM READY", true);
+                
+                showSearchSection();
+                showToast(`เชื่อมต่อฐานข้อมูลสำเร็จ (${allData.length.toLocaleString()} รายการ)`);
+
+                document.getElementById('showGlobalDashboardBtn').addEventListener('click', () => {
+                    if (allData.length === 0) {
+                        showToast('ข้อมูลยังไม่พร้อมใช้งาน กรุณารอสักครู่');
+                        return;
+                    }
+                    showDashboard(true);
+                });
+                
+            } catch (error) {
+                await Preloader.hide("CONNECTION FAILED", false);
+                showError(error.message, 'การเชื่อมต่อล้มเหลว');
+            }
+        });
+
+        async function performSearch(searchType, searchValues) {
+            // Trigger Grand Preloader for Searches
+            Preloader.show([
+                "ANALYZING SEARCH CRITERIA...",
+                "SCANNING DATABASE...",
+                "MATCHING ASSET RECORDS..."
+            ]);
+            
+            // Hide everything behind it so fade out is clean
+            hideAllSections();
+            
+            try {
+                if (allData.length === 0) {
+                    await loadGoogleSheetsData();
+                }
+                
+                // Add cinematic delay to enjoy the animation (Local search is too fast otherwise)
+                await new Promise(r => setTimeout(r, 1200));
+
+                let filteredData = searchByMultipleCriteria(searchValues, searchType);
+
+                if (filteredData.length === 0) {
+                    await Preloader.hide("NO RECORDS FOUND", false);
+                    showNoResults();
+                    return;
+                }
+                
+                selectedIds.clear(); 
+                currentData = filteredData;
+                currentSearchInfo = {
+                    type: searchType,
+                    value: searchValues.join(', '),
+                    data: filteredData[0]
+                };
+
+                await Preloader.hide("MATCH FOUND", true);
+                displayResults(filteredData, searchType);
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                await Preloader.hide("SEARCH FAILED", false);
+                showError('เกิดข้อผิดพลาดในการประมวลผล โปรดลองใหม่อีกครั้ง', 'ระบบขัดข้อง');
+            }
+        }
+
+        function showError(message, title = 'เกิดข้อผิดพลาด') {
+            hideAllSections();
+            const errorDiv = document.getElementById('errorMessage');
+            document.getElementById('errorTitle').textContent = title;
+            document.getElementById('errorText').textContent = message;
+            errorDiv.classList.remove('hidden');
+            document.getElementById('searchSection').classList.remove('hidden');
+        }
+
+        function showNoResults() {
+            hideAllSections();
+            document.getElementById('noResults').classList.remove('hidden');
+            document.getElementById('searchSection').classList.add('hidden'); // Ensure hidden
+        }
+        
+        function showSearchSection() {
+            hideAllSections();
+            document.getElementById('searchSection').classList.remove('hidden');
+            // reset animation
+            const form = document.getElementById('searchForm');
+            form.classList.remove('animate-fade-in-up');
+            void form.offsetWidth;
+            form.classList.add('animate-fade-in-up');
+        }
+
+        function displayResults(data, searchType) {
+            hideAllSections();
+            
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.classList.remove('hidden');
+            resultsSection.classList.add('animate-fade-in-up');
+
+            const resultsInfo = document.getElementById('resultsInfo');
+            const statusDateDisplay = document.getElementById('statusDateDisplay');
+
+            statusDateDisplay.innerHTML = statusDate ? `<i class="far fa-clock mr-1"></i> ข้อมูลล่าสุดงวดบัญชี ${statusDate}` : '';
+            
+            if (searchType === 'businessType' && searchTags.includes('All')) {
+                currentSort = { column: 'businessType', direction: 'asc' };
+                data.sort((a, b) => {
+                    const valA = a.businessType || '';
+                    const valB = b.businessType || '';
+                    return valA.localeCompare(valB, 'th');
+                });
+            } else {
+                currentSort = { column: null, direction: 'asc' };
+            }
+
+            if (searchType === 'employee' && searchTags.length === 1) {
+                const employee = data.length > 0 ? data[0] : {};
+                resultsInfo.innerHTML = `
+                    <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+                        <div class="flex items-center"><div class="w-8 h-8 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center mr-3"><i class="fas fa-user"></i></div> <div><span class="text-xs text-slate-400 block">ชื่อ-สกุล</span> <span class="font-bold text-slate-800">${employee.assetSupervisorName || '-'}</span></div></div>
+                        <div class="h-8 w-px bg-slate-200 hidden md:block"></div>
+                        <div><span class="text-xs text-slate-400 block">ตำแหน่ง</span> <span class="font-semibold">${employee.position || '-'}</span></div>
+                        <div class="h-8 w-px bg-slate-200 hidden md:block"></div>
+                        <div><span class="text-xs text-slate-400 block">สังกัด</span> <span class="font-semibold">${employee.department || '-'}</span></div>
+                    </div>
+                `;
+            } else {
+                resultsInfo.innerHTML = `<span class="text-slate-500 mr-2">ผลลัพธ์การค้นหา:</span> <strong class="text-brand-600 bg-brand-50 px-3 py-1 rounded-lg">${currentSearchInfo.value}</strong>`;
+            }
+            
+            // Disposal Alert Logic
+            const disposalAlertContainer = document.getElementById('disposalAlertContainer');
+            const disposalItems = data.filter(item => item.status === 'จำหน่าย(ขาย)' || item.status === 'จำหน่าย(ทำลาย)');
+
+            if (disposalItems.length > 0) {
+                disposalAlertContainer.innerHTML = `
+                    <div class="w-12 h-12 shrink-0 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-xl mt-1">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg text-rose-800 mb-1">พบทรัพย์สินรอการตัดจำหน่าย ${disposalItems.length} รายการ</h4>
+                        <p class="text-sm text-rose-600/80 leading-relaxed">ท่านมีทรัพย์สินที่ได้รับอนุมัติจำหน่ายแล้ว โปรดเร่งดำเนินการขายหรือทำลายภายใน 60 วันนับแต่วันอนุมัติ และประสานเจ้าหน้าที่บัญชี AA ตัดใน SAP</p>
+                    </div>
+                `;
+                disposalAlertContainer.classList.remove('hidden');
+            } else {
+                disposalAlertContainer.classList.add('hidden');
+            }
+            
+            currentData = [...data]; 
+            
+            initializeFiltersAndDisplay();
+
+            document.querySelectorAll('#resultsTable thead th.sortable').forEach(th => {
+                th.addEventListener('click', () => {
+                    const column = th.dataset.sort;
+                    if (currentSort.column === column) {
+                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.column = column;
+                        currentSort.direction = 'asc';
+                    }
+                    sortAndRenderPaginatedView();
+                });
+            });
+        }
+
+        function initializeFiltersAndDisplay() {
+            populateAssetClassFilter();
+            initializeQuickFilters();
+            applyAllFilters();
+            updateSortIcons();
+        }
+        
+        function renderPaginatedView() {
+            const totalPages = Math.ceil(currentDisplayData.length / rowsPerPage);
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageData = currentDisplayData.slice(start, end);
+
+            renderTable(pageData);
+            calculateAndDisplaySummary(currentDisplayData);
+            renderPaginationControls(totalPages);
+            updateSelectAllCheckboxState();
+        }
+
+        function renderTable(dataToRender) {
+            const resultsBody = document.getElementById('resultsBody');
+            resultsBody.innerHTML = '';
+
+            dataToRender.forEach(item => {
+                const row = resultsBody.insertRow();
+                
+                row.innerHTML = `
+                    <td class="p-2 text-center align-top">
+                        <input type="checkbox" class="row-checkbox w-4 h-4 text-brand-600 bg-slate-100 border-slate-300 rounded focus:ring-brand-500 cursor-pointer" data-id="${item.id}" ${selectedIds.has(item.id) ? 'checked' : ''}>
+                    </td>
+                    <td class="px-2 py-2.5 font-bold text-brand-800 align-top whitespace-normal break-words" title="${item.assetClassName || ''}">${item.assetMain || '-'}</td>
+                    <td class="px-2 py-2.5 text-slate-500 align-top whitespace-normal break-words">${item.assetSub || '-'}</td>
+                    <td class="px-2 py-2.5 text-slate-700 align-top whitespace-normal break-words" title="${item.assetDescription || ''}">${item.assetDescription || '-'}</td>
+                    <td class="px-2 py-2.5 text-slate-500 align-top whitespace-normal break-words">${item.transferDate || '-'}</td>
+                    <td class="px-2 py-2.5 text-right text-slate-700 align-top whitespace-normal break-words">${formatNumber(item.acquisitionValue)}</td>
+                    <td class="px-2 py-2.5 text-right text-slate-500 align-top whitespace-normal break-words">${formatNumber(item.accumulatedDepreciation)}</td>
+                    <td class="px-2 py-2.5 text-right font-bold text-slate-800 align-top whitespace-normal break-words">${formatNumber(item.bookValue)}</td>
+                    <td class="px-2 py-2.5 text-slate-600 align-top whitespace-normal break-words">${item.assetSupervisorName || '-'}</td>
+                    <td class="px-2 py-2.5 text-slate-600 align-top whitespace-normal break-words">${item.assetCostCenter || '-'}</td>
+                    <td class="px-2 py-2.5 text-center align-top">${getStatusBadge(item.status)}</td>
+                `;
+            });
+            
+            document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const id = parseInt(e.target.dataset.id);
+                    if (e.target.checked) selectedIds.add(id);
+                    else selectedIds.delete(id);
+                    updateSelectAllCheckboxState();
+                });
+            });
+            
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            selectAllCheckbox.removeEventListener('change', handleSelectAll);
+            selectAllCheckbox.addEventListener('change', handleSelectAll);
+        }
+
+        function handleSelectAll(event) {
+            const isChecked = event.target.checked;
+            currentDisplayData.forEach(item => {
+                if (isChecked) selectedIds.add(item.id);
+                else selectedIds.delete(item.id);
+            });
+            renderPaginatedView();
+        }
+
+        function updateSelectAllCheckboxState() {
+             const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+             const allVisibleIds = new Set(currentDisplayData.map(item => item.id));
+             const allVisibleSelected = [...allVisibleIds].every(id => selectedIds.has(id));
+             selectAllCheckbox.checked = allVisibleSelected && currentDisplayData.length > 0;
+        }
+
+        function renderPaginationControls(totalPages) {
+            const container = document.getElementById('paginationContainer');
+            container.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            let paginationHtml = '';
+            const btnClass = "page-link w-8 h-8 flex items-center justify-center rounded-lg text-sm";
+
+            paginationHtml += `<button class="${btnClass} ${currentPage === 1 ? 'disabled' : ''}" data-page="${currentPage - 1}"><i class="fas fa-chevron-left text-xs"></i></button>`;
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            if (currentPage <= 3) endPage = Math.min(5, totalPages);
+            if (currentPage > totalPages - 3) startPage = Math.max(1, totalPages - 4);
+            
+            if (startPage > 1) {
+                 paginationHtml += `<button class="${btnClass}" data-page="1">1</button>`;
+                 if (startPage > 2) paginationHtml += `<span class="${btnClass} disabled">...</span>`;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHtml += `<button class="${btnClass} ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) paginationHtml += `<span class="${btnClass} disabled">...</span>`;
+                paginationHtml += `<button class="${btnClass}" data-page="${totalPages}">${totalPages}</button>`;
+            }
+
+            paginationHtml += `<button class="${btnClass} ${currentPage === totalPages ? 'disabled' : ''}" data-page="${currentPage + 1}"><i class="fas fa-chevron-right text-xs"></i></button>`;
+
+            container.innerHTML = paginationHtml;
+
+            container.querySelectorAll('button[data-page]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button');
+                    const newPage = parseInt(btn.dataset.page);
+                    if (newPage && newPage !== currentPage) {
+                        currentPage = newPage;
+                        renderPaginatedView();
+                    }
+                });
+            });
+        }
+
+        function formatNumber(value) {
+            if (!value || value === '') return '-';
+            const numValue = parseFloat(String(value).replace(/,/g, ''));
+            if (isNaN(numValue)) return value;
+            return new Intl.NumberFormat('th-TH', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(numValue);
+        }
+
+        function getSelectedData() {
+            return allData.filter(item => selectedIds.has(item.id));
+        }
+        
+        const parseCurrency = (str) => parseFloat(String(str).replace(/,/g, '')) || 0;
+
+        function calculateSummary(data) {
+            return data.reduce((summary, item) => {
+                summary.count += 1;
+                summary.totalAcquisition += parseCurrency(item.acquisitionValue);
+                summary.totalDepreciation += parseCurrency(item.accumulatedDepreciation);
+                summary.totalBookValue += parseCurrency(item.bookValue);
+                return summary;
+            }, { count: 0, totalAcquisition: 0, totalDepreciation: 0, totalBookValue: 0 });
+        }
+        
+        function calculateAndDisplaySummary(data) {
+            const summary = calculateSummary(data);
+            const footer = document.getElementById('resultsFooter');
+            footer.innerHTML = `
+                <tr>
+                    <td class="px-2 py-4 text-center bg-slate-50 rounded-bl-xl"><i class="fas fa-chart-line text-brand-500 text-lg"></i></td>
+                    <td class="px-2 py-4 font-black text-slate-800 bg-slate-50 whitespace-normal break-words" colspan="4">ยอดรวม ${summary.count.toLocaleString()} รายการ</td>
+                    <td class="px-2 py-4 text-right font-black text-brand-700 bg-slate-50 whitespace-normal break-words">${formatNumber(summary.totalAcquisition)}</td>
+                    <td class="px-2 py-4 text-right font-black text-amber-600 bg-slate-50 whitespace-normal break-words">${formatNumber(summary.totalDepreciation)}</td>
+                    <td class="px-2 py-4 text-right font-black text-emerald-600 bg-slate-50 whitespace-normal break-words">${formatNumber(summary.totalBookValue)}</td>
+                    <td class="px-2 py-4 bg-slate-50 rounded-br-xl" colspan="3"></td>
+                </tr>
+            `;
+        }
+        
+        // ========================================
+        // Tagging Logic
+        // ========================================
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsContainer = document.getElementById('suggestionsContainer');
+        const tagContainer = document.getElementById('tagContainer');
+        const clearAllTagsBtn = document.getElementById('clearAllTagsBtn');
+        let typingTimer;
+
+        function renderTags() {
+            const tags = tagContainer.querySelectorAll('.tag');
+            tags.forEach(tag => tag.remove());
+
+            searchTags.forEach(tagValue => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'tag rounded-md px-2.5 py-1 text-sm flex items-center gap-1 font-medium';
+                tagElement.innerHTML = `
+                    <span>${tagValue}</span>
+                    <button class="tag-remove w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-blue-200 transition-colors" data-value="${tagValue}"><i class="fas fa-times text-[10px]" style="pointer-events:none"></i></button>
+                `;
+                tagContainer.insertBefore(tagElement, searchInput);
+            });
+            
+            if (searchTags.length > 0) clearAllTagsBtn.classList.remove('hidden');
+            else clearAllTagsBtn.classList.add('hidden');
+        }
+
+        function addTag(value) {
+            const trimmedValue = value.trim();
+            if (trimmedValue && !searchTags.includes(trimmedValue)) {
+                searchTags.push(trimmedValue);
+                renderTags();
+            }
+            searchInput.value = '';
+            suggestionsContainer.classList.add('hidden');
+        }
+
+        clearAllTagsBtn.addEventListener('click', () => {
+            searchTags = [];
+            renderTags();
+        });
+        
+        tagContainer.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.tag-remove');
+            if (removeBtn) {
+                const valueToRemove = removeBtn.dataset.value;
+                searchTags = searchTags.filter(tag => tag !== valueToRemove);
+                renderTags();
+            } else {
+                searchInput.focus();
+            }
+        });
+
+        searchInput.addEventListener('paste', (e) => {
+            const searchType = document.querySelector('input[name="searchType"]:checked').value;
+            if (searchType !== 'assetNumber') return;
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            const items = pastedText.split(/[\n\t\s,]+/).filter(item => item.trim() !== '');
+            items.forEach(item => addTag(item.trim()));
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const searchType = document.querySelector('input[name="searchType"]:checked').value;
+                const inputValue = searchInput.value.trim();
+
+                if (!inputValue) return;
+
+                if (searchType === 'costCenterName' && inputValue.endsWith('*')) {
+                    const prefix = inputValue.slice(0, -1).toLowerCase();
+                    if (prefix) {
+                        const matchingCenters = uniqueCostCenterNames.filter(name => name.toLowerCase().startsWith(prefix));
+                        matchingCenters.forEach(addTag);
+                    }
+                    searchInput.value = '';
+                    suggestionsContainer.classList.add('hidden');
+                } else {
+                    addTag(inputValue);
+                }
+            }
+        });
+
+        searchInput.addEventListener('input', () => {
+            const searchType = document.querySelector('input[name="searchType"]:checked').value;
+            const inputValue = searchInput.value;
+            const lowerInputValue = inputValue.toLowerCase();
+            
+            clearTimeout(typingTimer);
+
+            if (searchType === 'employee') {
+                if (inputValue.length === 6) {
+                    typingTimer = setTimeout(() => addTag(inputValue), 500);
+                } else if (inputValue.length === 7) addTag(inputValue);
+                return;
+            }
+
+            if (searchType === 'assetNumber') {
+                 if (/^\d{9}-\d{9}$/.test(inputValue)) {
+                    addTag(inputValue);
+                    return;
+                }
+            }
+
+            if (searchType === 'businessType') {
+                if (lowerInputValue === 'all') { addTag('All'); return; }
+                if (inputValue.length === 4) { addTag(inputValue); return; }
+            }
+
+            if (searchType === 'costCenterName') {
+                 if (lowerInputValue === 'กบฟ.') {
+                    const prefix = 'กบฟ.'.toLowerCase();
+                    const matchingCenters = uniqueCostCenterNames.filter(name => name.toLowerCase().startsWith(prefix));
+                    if(matchingCenters.length > 0) {
+                        matchingCenters.forEach(addTag);
+                        searchInput.value = '';
+                    }
+                    suggestionsContainer.classList.add('hidden');
+                    return;
+                }
+                
+                if (inputValue.includes('*') || inputValue.length < 1) {
+                    suggestionsContainer.classList.add('hidden');
+                    return;
+                }
+
+                const suggestions = uniqueCostCenterNames.filter(name => name.toLowerCase().includes(lowerInputValue));
+                
+                if (suggestions.length > 0) {
+                    suggestionsContainer.innerHTML = suggestions
+                        .map(s => `<div class="autocomplete-suggestion px-5 py-3 text-sm font-medium text-slate-700 cursor-pointer hover:bg-brand-50 hover:text-brand-700 transition-colors border-b border-slate-100 last:border-0">${s}</div>`)
+                        .join('');
+                    suggestionsContainer.classList.remove('hidden');
+                } else {
+                    suggestionsContainer.classList.add('hidden');
+                }
+            } else {
+                suggestionsContainer.classList.add('hidden');
+            }
+        });
+        
+        suggestionsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('autocomplete-suggestion')) {
+                addTag(e.target.textContent);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.relative')) suggestionsContainer.classList.add('hidden');
+        });
+
+        // ========================================
+        // Sorting Logic
+        // ========================================
+        function sortAndRenderPaginatedView() {
+            if (!currentSort.column) {
+                renderPaginatedView();
+                return;
+            };
+            
+            currentDisplayData.sort((a, b) => {
+                let valA = a[currentSort.column];
+                let valB = b[currentSort.column];
+                
+                const numericColumns = ['acquisitionValue', 'accumulatedDepreciation', 'bookValue', 'assetSub'];
+                if (numericColumns.includes(currentSort.column)) {
+                    valA = parseCurrency(valA);
+                    valB = parseCurrency(valB);
+                } else {
+                    valA = String(valA).toLowerCase();
+                    valB = String(valB).toLowerCase();
+                }
+
+                if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            currentPage = 1;
+            renderPaginatedView();
+            updateSortIcons();
+        }
+
+        function updateSortIcons() {
+            document.querySelectorAll('#resultsTable thead th.sortable').forEach(th => {
+                const icon = th.querySelector('.sort-icon');
+                if(!icon) return;
+                
+                icon.className = 'fas fa-sort text-slate-300 group-hover:text-brand-500 ml-1 sort-icon transition-colors';
+
+                if (th.dataset.sort === currentSort.column) {
+                    icon.className = `fas fa-sort-${currentSort.direction === 'asc' ? 'up' : 'down'} text-brand-600 ml-1 sort-icon`;
+                }
+            });
+        }
+
+        // ========================================
+        // Filter Logic
+        // ========================================
+        function populateAssetClassFilter() {
+            const optionsContainer = document.getElementById('assetClassFilterOptions');
+            const buttonLabel = document.querySelector('#assetClassFilterButton span');
+            optionsContainer.innerHTML = ''; 
+            buttonLabel.textContent = 'ทุกคลาสทรัพย์สิน';
+            
+            const createOption = (val, text) => {
+                const a = document.createElement('a');
+                a.href = '#';
+                a.className = 'block px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-50 hover:text-brand-600 transition-colors';
+                a.dataset.value = val;
+                a.innerHTML = val === 'all' ? `<i class="fas fa-layer-group w-5"></i> ${text}` : `<span class="w-5 inline-block text-slate-400 font-mono text-xs">${val}</span> ${text}`;
+                return a;
+            };
+
+            optionsContainer.appendChild(createOption('all', 'ทุกคลาสทรัพย์สิน'));
+
+            const classes = currentData.reduce((acc, item) => {
+                if (item.assetClassCode && item.assetClassName) acc.set(item.assetClassCode, item.assetClassName);
+                return acc;
+            }, new Map());
+            
+            const sortedClasses = [...classes.entries()].sort((a, b) => {
+                const numA = parseInt(a[0], 10);
+                const numB = parseInt(b[0], 10);
+                return (!isNaN(numA) && !isNaN(numB)) ? numA - numB : a[0].localeCompare(b[0]);
+            });
+
+            sortedClasses.forEach(([code, name]) => optionsContainer.appendChild(createOption(code, name)));
+        }
+        
+        function applyAllFilters() {
+             let filtered = [...currentData];
+             filtered = filtered.filter(activeQuickFilterFn);
+             
+             if(activeClassFilterValue !== 'all') {
+                filtered = filtered.filter(item => item.assetClassCode === activeClassFilterValue);
+             }
+
+             const searchTerm = document.getElementById('multifunctionSearchInput').value.toLowerCase().trim();
+             if (searchTerm) {
+                filtered = filtered.filter(item => {
+                    if (searchTerm === '1.00' || searchTerm === '1') {
+                        return formatNumber(item.bookValue) === '1.00';
+                    }
+                    return Object.values(item).some(val => String(val).toLowerCase().includes(searchTerm));
+                });
+             }
+             
+             currentDisplayData = filtered;
+             currentPage = 1;
+             renderPaginatedView();
+        }
+
+        function initializeQuickFilters() {
+            const filterButtons = document.querySelectorAll('.quick-filter-btn');
+            const classFilterButton = document.getElementById('assetClassFilterButton');
+            const classFilterOptions = document.getElementById('assetClassFilterOptions');
+            const multifunctionInput = document.getElementById('multifunctionSearchInput');
+
+            const setActiveButton = (activeBtn) => {
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('bg-slate-800', 'text-white', 'border-slate-800');
+                    btn.classList.add('bg-white');
+                });
+                if(activeBtn) {
+                    activeBtn.classList.remove('bg-white', 'text-slate-600', 'text-amber-600', 'text-rose-600');
+                    activeBtn.classList.add('bg-slate-800', 'text-white', 'border-slate-800');
+                }
+            };
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    setActiveButton(e.target);
+                    const id = e.target.id;
+                    if(id === 'filterBtnAll') activeQuickFilterFn = () => true;
+                    else if (id === 'filterBtnBookValue') activeQuickFilterFn = item => formatNumber(item.bookValue) === '1.00';
+                    else if (id === 'filterBtnDamaged') activeQuickFilterFn = item => item.status === 'ชำรุด' || item.status === 'สภาพดีแต่ไม่ได้ใช้งาน';
+                    else if (id === 'filterBtnDisposed') activeQuickFilterFn = item => item.status === 'จำหน่าย(ขาย)' || item.status === 'จำหน่าย(ทำลาย)';
+                    applyAllFilters();
+                });
+            });
+
+            classFilterButton.addEventListener('click', () => classFilterOptions.classList.toggle('hidden'));
+
+            classFilterOptions.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = e.target.closest('a');
+                if (target) {
+                    activeClassFilterValue = target.dataset.value;
+                    document.querySelector('#assetClassFilterButton span').textContent = target.textContent.trim();
+                    classFilterOptions.classList.add('hidden');
+                    applyAllFilters();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!document.getElementById('assetClassFilterContainer').contains(e.target)) {
+                    classFilterOptions.classList.add('hidden');
+                }
+            });
+
+            multifunctionInput.addEventListener('input', () => {
+                 setActiveButton(null);
+                 activeQuickFilterFn = () => true;
+                 applyAllFilters();
+            });
+            
+            setActiveButton(document.getElementById('filterBtnAll'));
+        }
+
+        // ========================================
+        // Export & Report
+        // ========================================
+        
+        function generateReportHTML() {
+            const selectedData = getSelectedData();
+            if (selectedData.length === 0) {
+                showToast('กรุณาเลือกรายการที่ต้องการพิมพ์/ดูตัวอย่างในตารางก่อน');
+                return null;
+            }
+            
+            selectedData.sort((a, b) => {
+                const valA = a.assetMain.localeCompare(b.assetMain, undefined, {numeric: true});
+                if (valA !== 0) return valA;
+                return a.assetSub.localeCompare(b.assetSub, undefined, {numeric: true});
+            });
+
+            const searchType = document.querySelector('input[name="searchType"]:checked').value;
+            let tableBodyHtml = '';
+
+            const generateRows = (data) => data.map(item => `
+                <tr>
+                    <td>${item.assetMain || '-'}</td>
+                    <td>${item.assetSub || '-'}</td>
+                    <td>${item.assetDescription || '-'}</td>
+                    <td>${item.transferDate || '-'}</td>
+                    <td style="text-align: right;">${formatNumber(item.acquisitionValue)}</td>
+                    <td style="text-align: right;">${formatNumber(item.accumulatedDepreciation)}</td>
+                    <td style="text-align: right;">${formatNumber(item.bookValue)}</td>
+                    <td>${item.assetCostCenter || '-'}</td>
+                </tr>
+            `).join('');
+
+            const generateSummaryRow = (summary, label, isGrandTotal = false) => {
+                const style = isGrandTotal 
+                    ? 'background-color: #f1f5f9; border-top: 2px solid #cbd5e1;' 
+                    : 'background-color: #f8fafc;';
+                return `
+                    <tr style="font-weight: 600; ${style}">
+                        <td colspan="4">${label}: ${summary.count.toLocaleString()} รายการ</td>
+                        <td style="text-align: right;">${formatNumber(summary.totalAcquisition)}</td>
+                        <td style="text-align: right;">${formatNumber(summary.totalDepreciation)}</td>
+                        <td style="text-align: right;">${formatNumber(summary.totalBookValue)}</td>
+                        <td></td>
+                    </tr>
+                `;
+            };
+
+            const grandSummary = calculateSummary(selectedData);
+            
+            if (searchType === 'businessType' || (searchType === 'assetNumber' && searchTags.length > 1)) {
+                const groupedData = selectedData.reduce((acc, item) => {
+                    const key = item.assetCostCenter || 'ไม่ระบุ';
+                    if (!acc[key]) acc[key] = [];
+                    acc[key].push(item);
+                    return acc;
+                }, {});
+
+                Object.keys(groupedData).sort().forEach(key => {
+                    const dataForGroup = groupedData[key];
+                    tableBodyHtml += `<tr><td colspan="8" style="background-color: #f8fafc; font-weight: 600; color: #334155;">ศูนย์ต้นทุน: ${key}</td></tr>`;
+                    tableBodyHtml += generateRows(dataForGroup);
+                    tableBodyHtml += generateSummaryRow(calculateSummary(dataForGroup), `รวม ${key}`);
+                });
+                tableBodyHtml += generateSummaryRow(grandSummary, 'รวมทั้งสิ้น', true);
+            } else if (searchTags.length > 1) {
+                searchTags.forEach(tag => {
+                    const dataForTag = selectedData.filter(item => {
+                        let val = searchType === 'employee' ? item.employeeCode : item.assetCostCenter;
+                        if (searchType === 'assetNumber' && tag.includes('-')) {
+                            const [s, e] = tag.split('-');
+                            const assetNum = parseInt(item.assetMain, 10);
+                            return assetNum >= parseInt(s, 10) && assetNum <= parseInt(e, 10);
+                        }
+                        return val.toString().trim().toLowerCase() === tag.toLowerCase();
+                    });
+                    if (dataForTag.length > 0) {
+                        tableBodyHtml += `<tr><td colspan="8" style="background-color: #f8fafc; font-weight: 600; color: #334155;">เงื่อนไข: ${tag}</td></tr>`;
+                        tableBodyHtml += generateRows(dataForTag);
+                        tableBodyHtml += generateSummaryRow(calculateSummary(dataForTag), `รวม ${tag}`);
+                    }
+                });
+                tableBodyHtml += generateSummaryRow(grandSummary, 'รวมทั้งสิ้น', true);
+            } else {
+                 tableBodyHtml = `<tbody>${generateRows(selectedData)}</tbody><tfoot>${generateSummaryRow(grandSummary, 'รวมทั้งสิ้น')}</tfoot>`;
+            }
+
+            let userInfoHtml = `<div><strong>ผลลัพธ์จาก:</strong> ${currentSearchInfo.value}</div>`;
+            if (currentSearchInfo.type === 'employee' && searchTags.length === 1) {
+                const emp = currentData.find(i => i.employeeCode.toString().trim().toLowerCase() === searchTags[0].toLowerCase());
+                if (emp) {
+                    userInfoHtml = `
+                        <div class="info-grid">
+                            <div><strong>ชื่อ-สกุล:</strong> ${emp.assetSupervisorName || '-'}</div>
+                            <div><strong>ตำแหน่ง:</strong> ${emp.position || '-'}</div>
+                            <div><strong>สังกัด:</strong> ${emp.department || '-'}</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            const printDate = new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            return `
+                <!DOCTYPE html>
+                <html lang="th">
+                <head>
+                    <title>รายงานทรัพย์สิน</title>
+                    <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');
+                        body { font-family: 'Sarabun', sans-serif; margin: 30px; color: #1e293b; }
+                        .header { text-align: center; margin-bottom: 30px; }
+                        h1 { font-size: 18pt; margin: 0 0 5px 0; color: #0f172a; }
+                        h2 { font-size: 14pt; margin: 0; font-weight: 400; color: #475569; }
+                        .info-section { margin-bottom: 20px; font-size: 11pt; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+                        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+                        table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+                        th, td { border: 1px solid #cbd5e1; padding: 8px 6px; text-align: left; }
+                        th { background-color: #f1f5f9; font-weight: 600; color: #334155; }
+                        tfoot { display: table-footer-group; }
+                        .report-footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 9pt; color: #64748b; }
+                        @media print {
+                            @page { size: A4 landscape; margin: 1.5cm; }
+                            body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                            .info-section { border: 1px solid #000; background: transparent; }
+                            th, td { border: 1px solid #000; }
+                            th { background-color: #f2f2f2 !important; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>รายงานยืนยันมูลค่าได้มาและค่าเสื่อมราคา</h1>
+                        <h2>การไฟฟ้าส่วนภูมิภาค เขต 3 (ภาคกลาง) จังหวัดนครปฐม | ${statusDate ? `งวดบัญชี ${statusDate}` : ''}</h2>
+                    </div>
+                    <div class="info-section">${userInfoHtml}</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>รหัสหลัก</th><th>รหัสย่อย</th><th>คำอธิบายทรัพย์สิน</th>
+                                <th>วันที่โอนเป็นทุน</th><th style="text-align:right">มูลค่าการได้มา</th>
+                                <th style="text-align:right">ค่าเสื่อมสะสม</th><th style="text-align:right">มูลค่าบัญชี</th>
+                                <th>ศูนย์ต้นทุน ท/ส</th>
+                            </tr>
+                        </thead>
+                        ${tableBodyHtml}
+                    </table>
+                    <div class="report-footer">
+                        <div>อ้างอิง: S_ALR_87011963</div>
+                        <div>พิมพ์เมื่อ: ${printDate}</div>
+                    </div>
+                </body>
+                </html>
+            `;
+        }
+
+        function previewReport() {
+            const html = generateReportHTML();
+            if (html) {
+                document.getElementById('previewFrame').srcdoc = html;
+                document.getElementById('previewModal').classList.add('visible');
+            }
+        }
+        
+        document.getElementById('closePreviewModal').addEventListener('click', () => {
+             document.getElementById('previewModal').classList.remove('visible');
+        });
+
+        function printReport() {
+            const html = generateReportHTML();
+            if (html) {
+                 const win = window.open('', '_blank');
+                 win.document.write(html);
+                 win.document.close();
+                 win.focus();
+                 setTimeout(() => { win.print(); win.close(); }, 500);
+            }
+        }
+
+        function exportToExcel() {
+            const selectedData = getSelectedData();
+            if (selectedData.length === 0) {
+                showToast('กรุณาเลือกรายการในตารางที่ต้องการ Export');
+                return;
+            }
+
+            const excelData = selectedData.map(item => ({
+                'รหัสทรัพย์สิน': item.assetMain || '-',
+                'รหัสย่อย': item.assetSub || '-',
+                'คำอธิบาย': item.assetDescription || '-',
+                'วันที่โอน': item.transferDate || '-',
+                'มูลค่าการได้มา': parseCurrency(item.acquisitionValue),
+                'ค่าเสื่อมสะสม': parseCurrency(item.accumulatedDepreciation),
+                'มูลค่าตามบัญชี': parseCurrency(item.bookValue),
+                'ผู้ดูแล': item.assetSupervisorName || '-',
+                'ศูนย์ต้นทุน': item.assetCostCenter || '-',
+                'สถานะ': item.status || '-',
+                'ตำแหน่ง': item.position || '-',
+                'สังกัด': item.department || '-'
+            }));
+            
+            const summary = calculateSummary(selectedData);
+            excelData.push({
+                'รหัสทรัพย์สิน': `รวม ${summary.count} รายการ`,
+                'มูลค่าการได้มา': summary.totalAcquisition,
+                'ค่าเสื่อมสะสม': summary.totalDepreciation,
+                'มูลค่าตามบัญชี': summary.totalBookValue,
+            });
+
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Asset Data');
+            XLSX.writeFile(wb, `PEAC3_Assets_${new Date().getTime()}.xlsx`);
+        }
+
+        // ========================================
+        // Dashboard Functions
+        // ========================================
+        
+        document.getElementById('closeDashboardModal').addEventListener('click', () => {
+            document.getElementById('dashboardModal').classList.remove('visible');
+        });
+
+        function showDashboard(isGlobal) {
+            dashboardBaseData = isGlobal ? [...allData] : [...currentDisplayData];
+            document.getElementById('dashboardTitle').innerHTML = `<i class="fas fa-chart-pie text-brand-500 mr-3"></i> <span>Dashboard ${isGlobal ? 'ภาพรวมองค์กร' : 'วิเคราะห์ผลลัพธ์'}</span>`;
+            
+            if (dashboardBaseData.length === 0) {
+                showToast('ไม่มีข้อมูลเพียงพอสำหรับแสดง Dashboard');
+                return;
+            }
+
+            populateDashboardFilters(dashboardBaseData);
+            initializeDashboardFilters();
+            applyDashboardFilters();
+            document.getElementById('dashboardModal').classList.add('visible');
+        }
+        
+        function populateDashboardFilters(data) {
+            const classF = document.getElementById('dbAssetClassFilter');
+            const bizF = document.getElementById('dbBusinessTypeFilter');
+            const statusF = document.getElementById('dbStatusFilter');
+            
+            classF.innerHTML = '<option value="all">ทุกคลาส</option>';
+            bizF.innerHTML = '<option value="all">ทุกธุรกิจ</option>';
+            statusF.innerHTML = '<option value="all">ทุกสถานะ</option>';
+
+            const classes = new Map();
+            const bizTypes = new Set();
+            const statuses = new Set();
+
+            data.forEach(i => {
+                if (i.assetClassCode && i.assetClassName) classes.set(i.assetClassCode, i.assetClassName);
+                if (i.businessType) bizTypes.add(i.businessType);
+                if (i.status) statuses.add(i.status);
+            });
+
+            [...classes.entries()].sort((a, b) => parseInt(a[0]) - parseInt(b[0])).forEach(([c, n]) => classF.add(new Option(`${c} - ${n}`, c)));
+            [...bizTypes].sort().forEach(t => bizF.add(new Option(t, t)));
+            [...statuses].sort().forEach(s => statusF.add(new Option(s, s)));
+        }
+        
+        function initializeDashboardFilters() {
+            ['dbAssetClassFilter', 'dbBusinessTypeFilter', 'dbStatusFilter'].forEach(id => {
+                const el = document.getElementById(id);
+                const newEl = el.cloneNode(true);
+                el.parentNode.replaceChild(newEl, el);
+                newEl.addEventListener('change', e => {
+                    if(id==='dbAssetClassFilter') activeDbClassFilterValue = e.target.value;
+                    if(id==='dbBusinessTypeFilter') activeDbBizFilterValue = e.target.value;
+                    if(id==='dbStatusFilter') activeDbStatusFilterValue = e.target.value;
+                    applyDashboardFilters();
+                });
+            });
+
+            const quickContainer = document.getElementById('dbQuickFilterContainer');
+            const newQC = quickContainer.cloneNode(true);
+            quickContainer.parentNode.replaceChild(newQC, quickContainer);
+
+            const btns = newQC.querySelectorAll('.db-quick-filter-btn');
+            btns.forEach(btn => {
+                btn.addEventListener('click', e => {
+                    btns.forEach(b => { b.classList.remove('bg-white', 'text-brand-600', 'shadow-sm'); b.classList.add('text-slate-600'); });
+                    e.target.classList.remove('text-slate-600');
+                    e.target.classList.add('bg-white', 'text-brand-600', 'shadow-sm');
+                    
+                    const id = e.target.id;
+                    if(id === 'dbFilterBtnAll') activeDbQuickFilterFn = () => true;
+                    else if (id === 'dbFilterBtnBookValue') activeDbQuickFilterFn = i => formatNumber(i.bookValue) === '1.00';
+                    else if (id === 'dbFilterBtnDamaged') activeDbQuickFilterFn = i => i.status.includes('ชำรุด') || i.status.includes('ไม่ใช้งาน');
+                    else if (id === 'dbFilterBtnDisposed') activeDbQuickFilterFn = i => i.status.includes('จำหน่าย');
+                    applyDashboardFilters();
+                });
+            });
+
+            btns[0].click(); // Select first active
+            activeDbClassFilterValue = 'all';
+            activeDbBizFilterValue = 'all';
+            activeDbStatusFilterValue = 'all';
+        }
+        
+        function applyDashboardFilters() {
+            let filtered = dashboardBaseData.filter(activeDbQuickFilterFn);
+            if(activeDbClassFilterValue !== 'all') filtered = filtered.filter(i => i.assetClassCode === activeDbClassFilterValue);
+            if(activeDbBizFilterValue !== 'all') filtered = filtered.filter(i => i.businessType === activeDbBizFilterValue);
+            if(activeDbStatusFilterValue !== 'all') filtered = filtered.filter(i => i.status === activeDbStatusFilterValue);
+            renderDashboardCharts(filtered);
+        }
+        
+        function renderDashboardCharts(data) {
+            if (statusChartInstance) statusChartInstance.destroy();
+            if (classChartInstance) classChartInstance.destroy();
+            if (costCenterChartInstance) costCenterChartInstance.destroy();
+
+            const summary = calculateSummary(data);
+            document.getElementById('db-total-count').textContent = summary.count.toLocaleString('th-TH');
+            document.getElementById('db-total-acquisition').textContent = formatNumber(summary.totalAcquisition);
+            document.getElementById('db-total-depreciation').textContent = formatNumber(summary.totalDepreciation);
+            document.getElementById('db-total-bookvalue').textContent = formatNumber(summary.totalBookValue);
+
+            createStatusChart(data.reduce((acc, i) => { acc[i.status||'-'] = (acc[i.status||'-']||0)+1; return acc; }, {}));
+            createClassChart(data.reduce((acc, i) => { acc[i.assetClassName||'-'] = (acc[i.assetClassName||'-']||0)+parseCurrency(i.bookValue); return acc; }, {}));
+            createCostCenterChart(data.reduce((acc, i) => { acc[i.assetCostCenter||'-'] = (acc[i.assetCostCenter||'-']||0)+1; return acc; }, {}));
+        }
+
+        function createStatusChart(data) {
+            statusChartInstance = new Chart(document.getElementById('statusChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444', '#10b981', '#8b5cf6', '#64748b'],
+                        borderWidth: 0, hoverOffset: 8
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } } }
+            });
+        }
+
+        function createClassChart(data) {
+            const sorted = Object.entries(data).sort(([,a],[,b]) => b-a).slice(0, 15);
+            classChartInstance = new Chart(document.getElementById('classChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(i => i[0].length > 20 ? i[0].substring(0, 20)+'...' : i[0]),
+                    datasets: [{ data: sorted.map(i => i[1]), backgroundColor: '#10b981', borderRadius: 4 }]
+                },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { borderDash: [2, 4], color: '#f1f5f9' } }, y: { grid: { display: false } } } }
+            });
+        }
+
+        function createCostCenterChart(data) {
+            const sorted = Object.entries(data).sort(([,a],[,b]) => b-a).slice(0, 20);
+            costCenterChartInstance = new Chart(document.getElementById('costCenterChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(i => i[0]),
+                    datasets: [{ data: sorted.map(i => i[1]), backgroundColor: '#3b82f6', borderRadius: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { borderDash: [2, 4], color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+            });
+        }
+    </script>
+</body>
+</html>
